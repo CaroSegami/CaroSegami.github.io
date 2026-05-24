@@ -1,1 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J. Carolina Segami — Evolutionary Biologist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --white: #ffffff;
+    --off-white: #f8f7f5;
+    --light-gray: #e8e6e1;
+    --mid-gray: #9a9690;
+    --dark-gray: #3a3835;
+    --black: #1a1917;
+    --serif: 'EB Garamond', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--white);
+    color: var(--black);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .nav-name {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--black);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--mid-gray);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--black); }
+
+  /* MAIN CONTENT */
+  main { padding-top: 72px; }
+
+  /* HERO */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 72px);
+    gap: 0;
+  }
+
+  .hero-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 4px;
+    background: var(--light-gray);
+    overflow: hidden;
+  }
+
+  .photo-tall {
+    grid-row: 1 / 3;
+    overflow: hidden;
+  }
+
+  .hero-photos img, .photo-tall img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .hero-photos img:hover { transform: scale(1.03); }
+
+  .hero-bio {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 4rem 4rem 4.5rem;
+    background: var(--white);
+  }
+
+  .bio-eyebrow {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    margin-bottom: 1.25rem;
+  }
+
+  .bio-name {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+  }
+
+  .bio-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--mid-gray);
+    margin-bottom: 2rem;
+  }
+
+  .bio-text {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--dark-gray);
+    max-width: 42ch;
+    margin-bottom: 2.5rem;
+  }
+
+  .bio-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .bio-links a {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--black);
+    text-decoration: none;
+    border-bottom: 1px solid var(--black);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .bio-links a:hover { color: var(--mid-gray); border-color: var(--mid-gray); }
+
+  /* SECTIONS */
+  section {
+    padding: 5rem 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--black);
+  }
+
+  .section-count {
+    font-size: 0.78rem;
+    color: var(--mid-gray);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* PROJECTS */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .project-card:hover { border-color: var(--dark-gray); }
+
+  .project-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .project-card:hover .project-img { transform: scale(1.04); }
+
+  .project-img-wrap { overflow: hidden; }
+
+  .project-info {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  .project-tag {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    margin-bottom: 0.5rem;
+  }
+
+  .project-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .project-desc {
+    font-size: 0.85rem;
+    color: var(--dark-gray);
+    line-height: 1.65;
+  }
+
+  /* PUBLICATIONS */
+  .pub-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pub-item {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1.5rem;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--light-gray);
+    align-items: start;
+  }
+
+  .pub-year {
+    font-size: 0.78rem;
+    color: var(--mid-gray);
+    font-weight: 500;
+    padding-top: 3px;
+    letter-spacing: 0.04em;
+  }
+
+  .pub-content { flex: 1; }
+
+  .pub-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--black);
+    margin-bottom: 0.35rem;
+    line-height: 1.45;
+  }
+
+  .pub-authors {
+    font-size: 0.82rem;
+    color: var(--mid-gray);
+    margin-bottom: 0.25rem;
+  }
+
+  .pub-journal {
+    font-size: 0.82rem;
+    color: var(--dark-gray);
+    font-style: italic;
+  }
+
+  .pub-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.6rem;
+  }
+
+  .pub-links a {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    text-decoration: none;
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 1px;
+    transition: color 0.2s;
+  }
+  .pub-links a:hover { color: var(--black); }
+
+  /* GALLERY */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .gallery-item {
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: pointer;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .gallery-item:hover img { transform: scale(1.06); }
+
+  /* CONTACT */
+  .contact-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  .contact-text {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    line-height: 1.45;
+    color: var(--dark-gray);
+    font-weight: 400;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .contact-item label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid-gray);
+    margin-bottom: 0.35rem;
+  }
+
+  .contact-item a, .contact-item p {
+    font-size: 0.95rem;
+    color: var(--black);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .contact-item a:hover { border-color: var(--black); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--light-gray);
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer p {
+    font-size: 0.78rem;
+    color: var(--mid-gray);
+    letter-spacing: 0.03em;
+  }
+
+  /* PROFILE PHOTO SECTION */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .profile-img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .about-text h3 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+  }
+
+  .about-text p {
+    font-size: 0.93rem;
+    line-height: 1.85;
+    color: var(--dark-gray);
+    margin-bottom: 1rem;
+  }
+
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .keyword {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dark-gray);
+    border: 1px solid var(--light-gray);
+    padding: 0.35rem 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-name">J. Carolina Segami</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#publications">Publications</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#">CV</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-photos">
+      <div class="photo-tall">
+        <img src="images/hero_left.jpg" alt="Flycatcher being held during fieldwork" />
+      </div>
+      <div style="overflow:hidden">
+        <img src="images/lemur_stare.jpg" alt="Mouse lemur" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.6s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" />
+      </div>
+      <div style="overflow:hidden">
+        <img src="images/landscape.jpg" alt="Madagascar landscape" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.6s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" />
+      </div>
+    </div>
+
+    <div class="hero-bio">
+      <p class="bio-eyebrow">Evolutionary Biology · Duke University</p>
+      <h1 class="bio-name">J. Carolina<br>Segami</h1>
+      <p class="bio-title">Postdoctoral Associate</p>
+      <p class="bio-text">
+        I study how species form and are maintained — investigating population genetics, hybridization, ecology, behaviour, aposematism, and genetic incompatibilities. My fieldwork has taken me from the forests of Scandinavia to the dry spiny forests of Madagascar, following some of the world's most fascinating birds and mammals.
+      </p>
+      <div class="bio-links">
+        <a href="https://scholar.google.com/citations?user=JuDBYM8AAAAJ" target="_blank">Google Scholar</a>
+        <a href="#publications">Publications</a>
+        <a href="#contact">Contact</a>
+        <a href="#">CV</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-header">
+      <h2 class="section-title">About</h2>
+    </div>
+    <div class="about-grid">
+      <img src="images/profile.jpg" alt="Carolina Segami in the field" class="profile-img" />
+      <div class="about-text">
+        <h3>About me</h3>
+        <p>I am an evolutionary biologist broadly interested in speciation, though I prefer to define myself as a generalist — I love taking an integrative approach to whatever system I'm working with from the field, to the lab, to the bioinformatics.</p>
+        <p>I grew up in Lima, Peru, where I completed my undergraduate degree in biology at UPCH. From there I joined the MEME Erasmus Master's program in evolutionary biology, which took me across institutions in Europe and allowed me to discover the evolutionary biology field. After I graduated, I spent a year teaching undergraduates back in Peru. Then I started my PhD in Anna Qvarnström's lab at Uppsala University, where I worked with <em>Ficedula</em> flycatchers. My dissertation focused on the genetic basis of hybrid male sterility using scRNA-seq, alongside the remarkable long-term population dataset the flycatcher project has been building for over 20 years. I also kept a side project going on strawberry poison dart frogs — a system I started working with during my masters.</p>
+        <p>I am currently a postdoctoral associate in the Yoder Lab at Duke University, where my work focuses on speciation genomics of mouse lemurs in Madagascar.</p>
+        <div class="keywords">
+          <span class="keyword">Speciation</span>
+          <span class="keyword">Hybridization</span>
+          <span class="keyword">Aposematism</span>
+          <span class="keyword">Genomics</span>
+          <span class="keyword">Evolutionary Biology</span>
+          <span class="keyword">Madagascar</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESEARCH -->
+  <section id="research" style="background: var(--off-white); max-width:100%; padding: 5rem 0;">
+    <div style="max-width:1100px; margin:0 auto; padding: 0 3rem;">
+      <div class="section-header">
+        <h2 class="section-title">Research</h2>
+        <span class="section-count">3 projects</span>
+      </div>
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <div class="project-img-wrap">
+            <img src="images/flycatcher_wild1.jpg" alt="Flycatcher in the wild" class="project-img" />
+          </div>
+          <div class="project-info">
+            <p class="project-tag">Speciation</p>
+            <h3 class="project-title">Flycatcher hybridization & reproductive isolation</h3>
+            <p class="project-desc">Investigating how reproductive barriers form between diverging flycatcher lineages using genomics and field studies.</p>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-img-wrap">
+            <img src="images/lemur_stare.jpg" alt="Mouse lemur" class="project-img" />
+          </div>
+          <div class="project-info">
+            <p class="project-tag">Madagascar</p>
+            <h3 class="project-title">Mouse lemur speciation</h3>
+            <p class="project-desc">Field studies in ecology, behaviour and genomics.</p>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-img-wrap">
+            <img src="images/frog.jpg" alt="Flycatcher on branches" class="project-img" />
+          </div>
+          <div class="project-info">
+            <p class="project-tag">Aposematism</p>
+            <h3 class="project-title">The strawberry poison frog project</h3>
+            <p class="project-desc">Aposematism and early stages of speciation in <em>O. pumilio</em> populations.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PUBLICATIONS -->
+  <section id="publications">
+    <div class="section-header">
+      <h2 class="section-title">Publications</h2>
+      <a href="https://scholar.google.com/citations?user=JuDBYM8AAAAJ" target="_blank" style="font-size:0.78rem;color:var(--mid-gray);letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--light-gray);">Google Scholar ↗</a>
+    </div>
+    <div class="pub-list">
+
+      <div class="pub-item">
+        <span class="pub-year">2026</span>
+        <div class="pub-content">
+          <p class="pub-title">Single-cell transcriptomics reveals rapid divergence of genes guiding meiosis and spermiogenesis in two passerine birds</p>
+          <p class="pub-authors"><strong>Segami Marzal, J. C.</strong>, Semon, M., Cunha, C., Bergin, C., Mugal, C., &amp; Qvarnstrom, A.</p>
+          <p class="pub-journal"><em>Genome Research</em>, gr.281911.126</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1101/GR.281911.126" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2024</span>
+        <div class="pub-content">
+          <p class="pub-title">Toward the integration of speciation research</p>
+          <p class="pub-authors">Stankowski, S., Cutter, A. D., Satokangas, I., Lerch, B. A., Rolland, J., Smadja, C. M., <strong>Segami Marzal, J. C.</strong>, Cooney, C. R., et al.</p>
+          <p class="pub-journal"><em>Evolutionary Journal of the Linnean Society</em>, 3(1)</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1093/evolinnean/kzae001" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2024</span>
+        <div class="pub-content">
+          <p class="pub-title">Tracking hybrid viability across life stages in a natural avian contact zone</p>
+          <p class="pub-authors">Ålund, M., <strong>Marzal, J. C. S.</strong>, Zhu, Y., Menon, P. N. K., Jones, W., &amp; Qvarnström, A.</p>
+          <p class="pub-journal"><em>Evolution</em>, 78(2)</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1093/evolut/qpad204" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2023</span>
+        <div class="pub-content">
+          <p class="pub-title">New genetic evidence from the Ambatotsirongorongo/Petriky complex in southeast Madagascar calls for an immediate re-evaluation of conservation strategies focusing on the Bemanasy mouse lemur (<em>Microcebus manitatra</em>)</p>
+          <p class="pub-authors">Hyde Roberts, S., <strong>Segami, J. C.</strong>, Harinala, V. J. N., Greene, L. K., Blanco, M. B., &amp; Yoder, A. D.</p>
+          <p class="pub-journal"><em>Lemur News</em></p>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2021</span>
+        <div class="pub-content">
+          <p class="pub-title">Should females prefer old males?</p>
+          <p class="pub-authors"><strong>Segami, J. C.</strong>, Lind, M. I., &amp; Qvarnström, A.</p>
+          <p class="pub-journal"><em>Evolution Letters</em>, 5(5), 507–520</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1002/evl3.250" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2019</span>
+        <div class="pub-content">
+          <p class="pub-title">Geographic contrasts between pre‐ and postzygotic barriers are consistent with reinforcement in <em>Heliconius</em> butterflies</p>
+          <p class="pub-authors">Rosser, N., Queste, L. M., Cama, B., Edelman, N. B., Mann, F., Mori Pezo, R., Morris, J., <strong>Segami, C.</strong>, Velado, P., Schulz, S., Mallet, J. L. B., &amp; Dasmahapatra, K. K.</p>
+          <p class="pub-journal"><em>Evolution</em>, 73(9), 1821–1838</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1111/evo.13804" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">2017</span>
+        <div class="pub-content">
+          <p class="pub-title">Cryptic female Strawberry poison frogs experience elevated predation risk when associating with an aposematic partner</p>
+          <p class="pub-authors"><strong>Segami Marzal, J. C.</strong>, Rudh, A., Rogell, B., Ödeen, A., Løvlie, H., Rosher, C., &amp; Qvarnström, A.</p>
+          <p class="pub-journal"><em>Ecology and Evolution</em>, 7(2)</p>
+          <div class="pub-links">
+            <a href="https://doi.org/10.1002/ece3.2662" target="_blank">DOI</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-item">
+        <span class="pub-year">—</span>
+        <div class="pub-content">
+          <p class="pub-title">The diet of two species of <em>Tyto</em> in southeastern Madagascar</p>
+          <p class="pub-authors">Goodman, S. M., <strong>Segami, J. C.</strong>, &amp; Roberts, S. H.</p>
+          <p class="pub-journal">In preparation</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery" style="background: var(--off-white); max-width:100%; padding: 5rem 0;">
+    <div style="max-width:1100px; margin:0 auto; padding: 0 3rem;">
+      <div class="section-header">
+        <h2 class="section-title">Field gallery</h2>
+        <span class="section-count">From the field</span>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item"><img src="images/flycatcher_held.jpg" alt="Flycatcher in hand" /></div>
+        <div class="gallery-item"><img src="images/octopus_landscape.jpg" alt="Mouse lemur" /></div>
+        <div class="gallery-item"><img src="images/landscape.jpg" alt="Madagascar landscape" /></div>
+        <div class="gallery-item"><img src="images/flycatcher_wild1.jpg" alt="Flycatcher on branch" /></div>
+        <div class="gallery-item"><img src="images/flycatcher_wild2.jpg" alt="Sleeping lemur" /></div>
+        <div class="gallery-item"><img src="images/lemur_sleep.jpg" alt="Sunset silhouette" /></div>
+        <div class="gallery-item"><img src="images/lemur_tree.jpg" alt="Flycatcher in branches" /></div>
+        <div class="gallery-item"><img src="images/sunset.jpg" alt="Lemur in tree" /></div>
+        <div class="gallery-item"><img src="images/profile.jpg" alt="Carolina in the field" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-header">
+      <h2 class="section-title">Contact</h2>
+    </div>
+    <div class="contact-wrap">
+      <p class="contact-text">
+        Happy to collaborate, review or brainstorm.
+      </p>
+      <div class="contact-details">
+        <div class="contact-item">
+          <label>Email</label>
+          <a href="mailto:carolina.segami@duke.edu">carolina.segami@duke.edu</a><br><a href="mailto:carocaro_s_13@hotmail.com" style="font-size:0.85rem;color:var(--mid-gray);">carocaro_s_13@hotmail.com</a>
+        </div>
+        <div class="contact-item">
+          <label>Institution</label>
+          <p>Duke University<br>Department of Biology</p>
+        </div>
+        <div class="contact-item">
+          <label>Links</label>
+          <a href="https://scholar.google.com/citations?user=JuDBYM8AAAAJ" target="_blank">Google Scholar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>© 2026 J. Carolina Segami</p>
+  <p>Duke University · Evolutionary Biology</p>
+</footer>
+
+</body>
+</html>
