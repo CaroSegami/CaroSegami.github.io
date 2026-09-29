@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zero to Cluster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky chapter rail on the left, one reading column on the right; dark terminal panels break the rhythm like a real screen would */
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --fg:#16211E; --muted:#586A65; --line:#D6E0DC;
+  --accent:#0A7663; --accent-soft:#DDF0EA; --code-bg:#E6EDEA;
+  --ex:#8F5400; --ex-soft:#FBF0DD; --ex-line:#EBCF9F;
+  --warn:#A8261D; --warn-soft:#FBE8E5;
+  --term-bg:#0F1816; --term-fg:#DCE8E4; --term-prompt:#5ED1B2; --term-out:#93AAA3; --term-com:#6F8A83; --term-bar:#1B2724;
+  --font-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1312; --surface:#141C1A; --fg:#E2EBE8; --muted:#98ACA6; --line:#26332F;
+  --accent:#52C9AC; --accent-soft:#163029; --code-bg:#1C2724;
+  --ex:#E6AE55; --ex-soft:#241D10; --ex-line:#4A3A1C;
+  --warn:#F28B80; --warn-soft:#321A17;
+  --term-bg:#070C0B; --term-fg:#DCE8E4; --term-prompt:#5ED1B2; --term-out:#8AA29B; --term-com:#627B75; --term-bar:#141E1C;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0D1312; --surface:#141C1A; --fg:#E2EBE8; --muted:#98ACA6; --line:#26332F;
+  --accent:#52C9AC; --accent-soft:#163029; --code-bg:#1C2724;
+  --ex:#E6AE55; --ex-soft:#241D10; --ex-line:#4A3A1C;
+  --warn:#F28B80; --warn-soft:#321A17;
+  --term-bg:#070C0B; --term-fg:#DCE8E4; --term-prompt:#5ED1B2; --term-out:#8AA29B; --term-com:#627B75; --term-bar:#141E1C;
+  color-scheme:dark }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:17px;line-height:1.62;margin:0}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:48px;max-width:1180px;margin:0 auto;padding-inline:24px}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow:auto;padding-block:40px 24px}
+.brand{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.01em;margin:0 0 4px}
+.brand span{color:var(--accent)}
+.toc .sub{color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.4}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.toc a{display:grid;grid-template-columns:2.2em 1fr;padding:6px 10px;border-radius:6px;color:var(--fg);text-decoration:none;font-size:15px;line-height:1.35}
+.toc a .n{font-family:var(--font-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.toc a:hover{background:var(--code-bg)}
+.toc a.active{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.toc a.active .n{color:var(--accent)}
+.tools{margin-top:20px;display:grid;gap:8px}
+.btn{font:600 13px var(--font-body);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;cursor:pointer;text-align:left}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+
+main{min-width:0;max-width:760px;padding-block:40px 120px}
+.hero{padding-block:16px 32px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.hero .kicker{font-family:var(--font-mono);font-size:13px;color:var(--accent);margin:0 0 12px}
+.hero h1{font-family:var(--font-display);font-weight:800;font-size:clamp(40px,7vw,68px);line-height:1;letter-spacing:-.03em;margin:0 0 16px;text-wrap:balance}
+.hero p{font-size:19px;color:var(--muted);margin:0;max-width:60ch}
+.hero .cursor{display:inline-block;width:.5em;height:.9em;background:var(--accent);vertical-align:-.05em;margin-left:.08em;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.hero .cursor{animation:none}}
+
+section.ch{padding-top:56px}
+.ch-label{font-family:var(--font-mono);font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px}
+h2{font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4.5vw,40px);line-height:1.1;letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance}
+h3{font-family:var(--font-display);font-weight:600;font-size:22px;line-height:1.25;margin:36px 0 8px;text-wrap:balance}
+p,ul,ol{margin:0 0 14px}
+li{margin-bottom:4px}
+.lede{font-size:19px;color:var(--muted)}
+code{font-family:var(--font-mono);font-size:.86em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;overflow-wrap:anywhere}
+kbd{font-family:var(--font-mono);font-size:.82em;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:.05em .4em;background:var(--surface)}
+
+/* terminal panels */
+.term{position:relative;background:var(--term-bg);color:var(--term-fg);border-radius:8px;margin:14px 0 18px;overflow:hidden}
+.term .bar{display:flex;justify-content:space-between;align-items:center;background:var(--term-bar);padding:5px 8px 5px 12px;font-family:var(--font-mono);font-size:11.5px;color:var(--term-out)}
+.term .bar .dots{display:flex;gap:6px}
+.term .bar .dots i{width:9px;height:9px;border-radius:50%;background:var(--term-com);opacity:.55}
+.copy{font:600 11.5px var(--font-mono);background:transparent;color:var(--term-out);border:1px solid var(--term-com);border-radius:4px;padding:2px 8px;cursor:pointer}
+.copy:hover{color:var(--term-prompt);border-color:var(--term-prompt)}
+.term pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:14px;line-height:1.55;tab-size:8}
+.term .p{color:var(--term-prompt);user-select:none}
+.term .c{color:var(--term-com);font-style:italic}
+.term .o{color:var(--term-out)}
+
+/* callouts */
+.note,.warn,.lab{border-radius:8px;padding:12px 16px;margin:16px 0;font-size:16px}
+.note{background:var(--accent-soft)}
+.warn{background:var(--warn-soft)}
+.lab{border:1.5px dashed var(--accent);background:var(--surface)}
+.note b:first-child,.warn b:first-child,.lab b:first-child{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.note b:first-child{color:var(--accent)} .warn b:first-child{color:var(--warn)} .lab b:first-child{color:var(--accent)}
+.note p:last-child,.warn p:last-child,.lab p:last-child{margin-bottom:0}
+
+/* exercises */
+.ex{background:var(--ex-soft);border:1px solid var(--ex-line);border-radius:8px;padding:14px 16px 12px;margin:20px 0}
+.ex-tag{font-family:var(--font-mono);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ex);margin:0 0 4px}
+.ex > p{margin-bottom:10px}
+.ex details{border-top:1px dashed var(--ex-line);padding-top:8px}
+.ex summary{cursor:pointer;font-weight:700;color:var(--ex);font-size:15px;list-style:none;display:inline-flex;align-items:center;gap:6px}
+.ex summary::-webkit-details-marker{display:none}
+.ex summary::before{content:"▸";transition:transform .15s}
+.ex details[open] summary::before{transform:rotate(90deg)}
+.ex details[open] summary .hide{display:inline} .ex summary .hide{display:none}
+.ex details[open] summary .show{display:none}
+.ans{padding-top:6px}
+.ans p:last-child{margin-bottom:0}
+
+/* tables */
+.tw{overflow-x:auto;margin:14px 0 18px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--font-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+
+/* git flow diagram */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:16px 0 20px}
+.flow .box{flex:1 1 130px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.flow .box b{display:block;font-family:var(--font-display);font-size:16px}
+.flow .arr{align-self:center;font-family:var(--font-mono);font-size:12px;color:var(--accent);text-align:center;flex:0 0 auto}
+.path{font-family:var(--font-mono);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.5;white-space:pre;margin:14px 0 18px}
+.path .hl{color:var(--accent);font-weight:600}
+
+footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+
+/* mobile */
+@media (max-width: 900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:0;padding-inline:16px}
+  nav.toc{position:static;max-height:none;padding-block:20px 0}
+  .toc-body{display:none}
+  .toc.open .toc-body{display:block}
+  .toc-toggle{display:inline-block !important}
+  main{padding-top:8px}
+}
+.toc-toggle{display:none;margin-top:8px}
+</style>
+
+</head>
+<body>
+<div class="shell">
+<nav class="toc" id="toc" aria-label="Chapters">
+  <p class="brand">zero<span>→</span>cluster</p>
+  <p class="sub">Unix, Slurm, conda, git and VS Code for people starting in bioinformatics</p>
+  <button class="btn toc-toggle" id="tocToggle" aria-expanded="false">Chapters ▾</button>
+  <div class="toc-body">
+  <ol>
+    <li><a href="#start"><span class="n">00</span>Before you start</a></li>
+    <li><a href="#unix"><span class="n">01</span>Unix, the shell &amp; how we work</a></li>
+    <li><a href="#nav"><span class="n">02</span>Moving around</a></li>
+    <li><a href="#files"><span class="n">03</span>Working with files</a></li>
+    <li><a href="#flags"><span class="n">04</span>Commands, flags &amp; manuals</a></li>
+    <li><a href="#pipes"><span class="n">05</span>Pipes, redirection &amp; grep</a></li>
+    <li><a href="#scripts"><span class="n">06</span>Scripts with nano</a></li>
+    <li><a href="#slurm"><span class="n">07</span>The cluster &amp; Slurm</a></li>
+    <li><a href="#conda"><span class="n">08</span>Installing software: conda &amp; pip</a></li>
+    <li><a href="#git"><span class="n">09</span>Git &amp; GitHub</a></li>
+    <li><a href="#vscode"><span class="n">10</span>VS Code</a></li>
+    <li><a href="#cheat"><span class="n">11</span>Cheat sheet &amp; next steps</a></li>
+  </ol>
+  <div class="tools">
+    <button class="btn" id="toggleAll">Show all answers</button>
+  </div>
+  </div>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="kicker">$ whoami  →  new lab member</p>
+  <h1>Zero to Cluster<span class="cursor" aria-hidden="true"></span></h1>
+  <p>A hands-on introduction to the command line for people who have never opened a terminal. By the end you will move around a Unix system, run bioinformatics tools, send jobs to a cluster with Slurm, install software with conda, and keep your scripts safe with git.</p>
+</header>
+
+<!-- ============ 00 ============ -->
+<section class="ch" id="start">
+<p class="ch-label">Chapter 00</p>
+<h2>Before you start</h2>
+<p class="lede">How to read this tutorial, how to open a terminal, and a small practice folder to play with.</p>
+
+<h3>How to read the code boxes</h3>
+<p>The dark boxes are terminal screens. Inside them:</p>
+<ul>
+  <li>A line starting with <code>$</code> is something <b>you type</b>. Don't type the <code>$</code> itself: it is the <em>prompt</em>, the shell's way of saying "I'm ready".</li>
+  <li>Lines without <code>$</code> are what the computer <b>prints back</b> (the output).</li>
+  <li>Anything after <code>#</code> is a <b>comment</b>, a note for humans. The shell ignores it.</li>
+  <li>Words in angle brackets, like <code>&lt;username&gt;</code>, are placeholders: replace them (brackets included) with your own value.</li>
+</ul>
+<div class="term"><pre>$ echo "Hello, lab!"     # print some text
+Hello, lab!</pre></div>
+<div class="note"><b>Tip</b><p>Type the commands yourself instead of using the copy button, at least for the first chapters. Your fingers learn faster than your eyes.</p></div>
+
+<h3>Opening a terminal</h3>
+<ul>
+  <li><b>Mac:</b> open <i>Terminal</i> (<kbd>Cmd</kbd>+<kbd>Space</kbd>, type "Terminal"). macOS is Unix-based, so everything here works.</li>
+  <li><b>Linux:</b> open <i>Terminal</i> from your applications menu (often <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd>).</li>
+  <li><b>Windows:</b> install <a href="https://learn.microsoft.com/en-us/windows/wsl/install">WSL</a> (Windows Subsystem for Linux). Open PowerShell as administrator, run <code>wsl --install</code>, restart, then open "Ubuntu" from the Start menu. You now have a real Linux terminal.</li>
+</ul>
+
+<h3>Create your practice folder</h3>
+<p>Copy the whole block below, paste it into your terminal and press <kbd>Enter</kbd>. It creates a folder called <code>unix_tutorial</code> in your home directory with a few tiny biological files. All exercises use it. Don't worry about understanding it yet; by chapter 05 you will.</p>
+<div class="term"><pre>mkdir -p ~/unix_tutorial/data ~/unix_tutorial/results ~/unix_tutorial/scripts
+cd ~/unix_tutorial
+
+cat &gt; data/genes.fasta &lt;&lt; 'EOF'
+&gt;geneA Homo sapiens
+ATGGCGTACGTTAGC
+&gt;geneB Mus musculus
+ATGCCGTTAGCATTA
+&gt;geneC Danio rerio
+ATGAAACGTTGCGTA
+&gt;geneD Homo sapiens
+ATGTTTGCGCATGCA
+EOF
+
+cat &gt; data/reads.fastq &lt;&lt; 'EOF'
+@read1
+ACGTACGTTAGC
++
+IIIIIIIIIIII
+@read2
+TTGACGATCGAT
++
+IIIIHHHHGGGG
+@read3
+GGGCATCGATCA
++
+IIIIIIIIIIII
+EOF
+
+printf "sample\tspecies\ttissue\treads\nS1\thuman\tliver\t120000\nS2\tmouse\tliver\t98000\nS3\thuman\tbrain\t143000\nS4\tzebrafish\tfin\t87000\nS5\tmouse\tbrain\t110000\n" &gt; data/samples.tsv
+
+echo "Practice folder ready in ~/unix_tutorial"</pre></div>
+</section>
+
+<!-- ============ 01 ============ -->
+<section class="ch" id="unix">
+<p class="ch-label">Chapter 01</p>
+<h2>Unix, the shell &amp; how we work in bioinformatics</h2>
+<p class="lede">Why we type commands instead of clicking, and what the words everybody uses actually mean.</p>
+
+<h3>Unix and Linux</h3>
+<p><b>Unix</b> is a family of operating systems born in the 1970s. <b>Linux</b> is a free Unix-like system, and it runs almost every server, supercomputer and cluster in the world. macOS is also Unix underneath. When people say "learn Unix" they mean: learn to use these systems through text commands.</p>
+
+<h3>Terminal vs shell</h3>
+<p>These two get mixed up all the time:</p>
+<ul>
+  <li>The <b>terminal</b> is the window: the app that shows text and receives your keystrokes.</li>
+  <li>The <b>shell</b> is the program running inside that window. It reads what you type, runs it, and prints the result. The most common shell is <b>bash</b>; Macs use <b>zsh</b> by default, which behaves almost identically for everything in this tutorial.</li>
+</ul>
+<p>Think of the terminal as a phone and the shell as the person on the other end who follows your instructions.</p>
+
+<h3>Why bioinformatics lives in the terminal</h3>
+<ul>
+  <li><b>Data is big.</b> A single sequencing run can produce hundreds of gigabytes. You can't open that in Excel, but command-line tools can stream through it line by line.</li>
+  <li><b>Tools are command-line programs.</b> Aligners, assemblers, variant callers and phylogenetics software (BWA, SAMtools, IQ-TREE, MAFFT…) almost never have buttons. You run them by typing.</li>
+  <li><b>The heavy work happens on a cluster</b>, a group of powerful computers you reach remotely. There is no desktop there, only a shell.</li>
+  <li><b>Everything is reproducible.</b> A command can be saved in a script and run again next year, on new data, by someone else. Clicks can't.</li>
+</ul>
+
+<h3>A typical project</h3>
+<p>Most analyses follow the same shape: raw data comes in, gets checked and processed by a chain of tools, and results come out. Each step is a command, and the whole chain is written down in scripts.</p>
+<div class="flow">
+  <div class="box"><b>Raw data</b>FASTQ reads from the sequencer</div>
+  <div class="arr">→</div>
+  <div class="box"><b>QC &amp; cleaning</b>check quality, trim adapters</div>
+  <div class="arr">→</div>
+  <div class="box"><b>Processing</b>align, assemble, call variants</div>
+  <div class="arr">→</div>
+  <div class="box"><b>Analysis</b>trees, statistics, figures</div>
+</div>
+<p>We keep each project in its own folder with the same structure. Raw data is never edited; everything else can be regenerated from it.</p>
+<div class="path">my_project/
+├── <span class="hl">data/</span>        raw data, treat as read-only
+├── <span class="hl">scripts/</span>     every command you ran, as scripts
+├── <span class="hl">results/</span>     outputs produced by the scripts
+├── <span class="hl">logs/</span>        messages from cluster jobs
+└── <span class="hl">README.md</span>    what this project is and how to rerun it</div>
+
+<h3>File formats you will meet</h3>
+<p>Most bioinformatics files are plain text, which is why simple Unix tools work so well on them.</p>
+<div class="tw"><table>
+<tr><th>Format</th><th>What it holds</th><th>Looks like</th></tr>
+<tr><td>FASTA <code>.fa .fasta</code></td><td>Sequences (DNA, protein)</td><td>a <code>&gt;name</code> line, then the sequence</td></tr>
+<tr><td>FASTQ <code>.fq .fastq</code></td><td>Sequencing reads plus quality scores</td><td>4 lines per read: <code>@name</code>, sequence, <code>+</code>, qualities</td></tr>
+<tr><td>TSV / CSV</td><td>Tables (sample sheets, counts)</td><td>columns separated by tabs or commas</td></tr>
+<tr><td>SAM / BAM</td><td>Reads aligned to a reference</td><td>SAM is text; BAM is its compressed binary form</td></tr>
+<tr><td>VCF</td><td>Genetic variants</td><td>header lines with <code>#</code>, then one variant per line</td></tr>
+<tr><td>GFF / GTF</td><td>Gene annotations</td><td>tab-separated features with coordinates</td></tr>
+<tr><td>Newick <code>.nwk .tre</code></td><td>Phylogenetic trees</td><td><code>((A,B),C);</code></td></tr>
+</table></div>
+<p>Files ending in <code>.gz</code> are compressed. Many tools read them directly; for others use <code>zcat file.gz</code> to read them without unpacking.</p>
+
+<h3>Your first commands</h3>
+<div class="term"><pre>$ whoami          # your user name
+$ hostname        # the name of the computer you are on
+$ date            # current date and time
+$ echo $SHELL     # which shell you are using</pre></div>
+
+<h3>Keyboard habits that save hours</h3>
+<div class="tw"><table>
+<tr><th>Key</th><th>What it does</th></tr>
+<tr><td><kbd>Tab</kbd></td><td>Autocompletes file and command names. Press twice to see all options. Use it constantly: it prevents typos.</td></tr>
+<tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Scroll through the commands you typed before.</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td><td>Stop the running command. Your emergency brake.</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>Clear the screen (same as typing <code>clear</code>).</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>A</kbd> / <kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>Jump to the start / end of the line.</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Search your command history. Type part of an old command.</td></tr>
+</table></div>
+
+<h3>Reaching the cluster: ssh</h3>
+<p><code>ssh</code> (secure shell) opens a shell on another computer. After you log in, the prompt changes and every command runs over there, not on your laptop.</p>
+<div class="term"><pre>$ ssh &lt;username&gt;@&lt;cluster.address&gt;
+$ exit            # log out and come back to your own computer</pre></div>
+<div class="lab"><b>Our lab</b><p>Ask your supervisor for: the cluster address · how to get an account · where our project folder is.</p></div>
+
+<div class="ex"><p class="ex-tag">Exercise 1.1</p>
+<p>In your own words: what is the difference between the terminal and the shell? Then find out which shell you are running.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>The terminal is the window/app; the shell is the program inside it that interprets your commands.</p>
+<div class="term"><pre>$ echo $SHELL
+/bin/bash          # or /bin/zsh on a Mac</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 1.2</p>
+<p>Type <code>sleep 100</code>. The terminal seems frozen. How do you get your prompt back without closing the window?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>Press <kbd>Ctrl</kbd>+<kbd>C</kbd>. It interrupts the running program. <code>sleep 100</code> just waits 100 seconds, but the same trick stops any command that runs too long or that you started by mistake.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="nav">
+<p class="ch-label">Chapter 02</p>
+<h2>Moving around</h2>
+<p class="lede">The file system is a tree of folders. You are always standing in one of them.</p>
+
+<h3>The tree</h3>
+<p>Everything starts at the <b>root</b>, written <code>/</code>. Folders (also called <b>directories</b>) contain files and more folders. Your personal folder is your <b>home directory</b>, shortened to <code>~</code>.</p>
+<div class="path">/                          the root: the top of everything
+├── home/
+│   └── <span class="hl">ana/</span>                 ~  (Ana's home directory)
+│       └── unix_tutorial/
+│           ├── data/
+│           │   ├── genes.fasta
+│           │   ├── reads.fastq
+│           │   └── samples.tsv
+│           ├── results/
+│           └── scripts/
+├── usr/                   programs installed on the system
+└── tmp/                   temporary files</div>
+
+<h3>Where am I? <code>pwd</code></h3>
+<p><code>pwd</code> means <i>print working directory</i>. The working directory is the folder you are "standing in" right now.</p>
+<div class="term"><pre>$ pwd
+/home/ana</pre></div>
+
+<h3>What's here? <code>ls</code></h3>
+<div class="term"><pre>$ ls                      # list the current folder
+unix_tutorial
+$ ls unix_tutorial/data   # list another folder without going there
+genes.fasta  reads.fastq  samples.tsv
+$ ls -l unix_tutorial/data   # long format: permissions, owner, size, date
+-rw-r--r-- 1 ana lab 143 Sep 29 10:12 genes.fasta
+-rw-r--r-- 1 ana lab 105 Sep 29 10:12 reads.fastq
+-rw-r--r-- 1 ana lab 138 Sep 29 10:12 samples.tsv</pre></div>
+<p>The first column of <code>ls -l</code> starts with <code>d</code> for a directory and <code>-</code> for a normal file. The rest (<code>rw-r--r--</code>) are <b>permissions</b>: who can <b>r</b>ead, <b>w</b>rite and e<b>x</b>ecute it (you, your group, everyone else).</p>
+
+<h3>Go somewhere: <code>cd</code></h3>
+<p><code>cd</code> means <i>change directory</i>.</p>
+<div class="term"><pre>$ cd unix_tutorial        # go into a folder
+$ cd data                 # and deeper
+$ pwd
+/home/ana/unix_tutorial/data
+$ cd ..                   # go up one level
+$ cd ~                    # go home (plain "cd" does the same)
+$ cd -                    # go back to where you just were</pre></div>
+
+<h3>Absolute and relative paths</h3>
+<p>A <b>path</b> is the address of a file or folder. There are two ways to write one:</p>
+<ul>
+  <li><b>Absolute</b> paths start with <code>/</code> (or <code>~</code>) and work from anywhere: <code>/home/ana/unix_tutorial/data/genes.fasta</code></li>
+  <li><b>Relative</b> paths start from where you are now: if you are in <code>unix_tutorial</code>, the same file is <code>data/genes.fasta</code></li>
+</ul>
+<p>Three shortcuts appear everywhere:</p>
+<div class="tw"><table>
+<tr><th>Symbol</th><th>Means</th></tr>
+<tr><td><code>~</code></td><td>your home directory</td></tr>
+<tr><td><code>.</code></td><td>the current directory</td></tr>
+<tr><td><code>..</code></td><td>the parent directory (one level up)</td></tr>
+</table></div>
+<div class="warn"><b>Watch out</b><p>Avoid spaces and special characters in file names. <code>my file.txt</code> looks like two separate things to the shell. Use <code>my_file.txt</code> or <code>my-file.txt</code>. If you receive a file with spaces, put its name in quotes: <code>ls "my file.txt"</code>.</p></div>
+
+<div class="ex"><p class="ex-tag">Exercise 2.1</p>
+<p>Go to your home directory from wherever you are, then print where you are.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cd              # or: cd ~
+$ pwd
+/home/&lt;your username&gt;</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 2.2</p>
+<p>List the contents of <code>~/unix_tutorial/data</code> in long format, with sizes that humans can read (KB, MB…) and including hidden files. Hint: you need three letters after <code>ls -</code>. Hidden files are those whose name starts with a dot.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ ls -lah ~/unix_tutorial/data</pre></div>
+<p><code>-l</code> long format, <code>-a</code> all files (including hidden ones, plus <code>.</code> and <code>..</code>), <code>-h</code> human-readable sizes. The order of the letters doesn't matter: <code>-hal</code> works too.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 2.3</p>
+<p>You are in <code>~/unix_tutorial/data</code>. Move to <code>~/unix_tutorial/results</code> using a <b>relative</b> path, in a single <code>cd</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cd ../results</pre></div>
+<p><code>..</code> takes you up to <code>unix_tutorial</code>, then <code>/results</code> goes into its sibling folder.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 2.4</p>
+<p>Is <code>data/genes.fasta</code> an absolute or a relative path? From which folder does it work?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>Relative: it doesn't start with <code>/</code> or <code>~</code>. It only works when you are standing in <code>~/unix_tutorial</code>.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="files">
+<p class="ch-label">Chapter 03</p>
+<h2>Working with files</h2>
+<p class="lede">Creating, copying, moving, deleting and peeking inside files.</p>
+
+<h3>Create folders and files</h3>
+<div class="term"><pre>$ cd ~/unix_tutorial
+$ mkdir test                  # make a directory
+$ mkdir -p test/a/b/c         # -p creates the whole chain at once
+$ touch test/notes.txt        # create an empty file</pre></div>
+
+<h3>Copy: <code>cp</code></h3>
+<p>The pattern is always <code>cp &lt;from&gt; &lt;to&gt;</code>.</p>
+<div class="term"><pre>$ cp data/genes.fasta test/                 # copy into a folder, same name
+$ cp data/genes.fasta test/my_genes.fasta   # copy with a new name
+$ cp -r test test_backup                    # -r (recursive) to copy a whole folder</pre></div>
+
+<h3>Move and rename: <code>mv</code></h3>
+<p>Unix has no separate "rename" command: renaming is moving a file to a new name.</p>
+<div class="term"><pre>$ mv test/my_genes.fasta test/genes_v2.fasta   # rename
+$ mv test/genes_v2.fasta results/              # move into another folder</pre></div>
+
+<h3>Delete: <code>rm</code></h3>
+<div class="term"><pre>$ rm results/genes_v2.fasta   # delete a file
+$ rm -r test_backup           # delete a folder and everything inside it
+$ rmdir test/a/b/c            # delete a folder only if it is empty</pre></div>
+<div class="warn"><b>There is no trash bin</b><p><code>rm</code> is permanent. No undo, no recycle bin. Before deleting, run <code>ls</code> with the same path to see exactly what will go. Beginners can use <code>rm -i</code>, which asks for confirmation for every file. And never run <code>rm -rf</code> on a path you haven't double-checked.</p></div>
+
+<h3>Look inside files</h3>
+<div class="tw"><table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>cat file</code></td><td>Prints the whole file. Fine for small files, a flood for big ones.</td></tr>
+<tr><td><code>less file</code></td><td>Opens a scrollable viewer. Arrows or space to move, <kbd>/</kbd> to search, <kbd>q</kbd> to quit. Use this for large files.</td></tr>
+<tr><td><code>head file</code></td><td>First 10 lines. <code>head -n 4 file</code> for the first 4.</td></tr>
+<tr><td><code>tail file</code></td><td>Last 10 lines. <code>tail -f log.txt</code> keeps watching a file as it grows.</td></tr>
+<tr><td><code>wc -l file</code></td><td>Counts lines (<b>w</b>ord <b>c</b>ount). Without <code>-l</code> it prints lines, words and characters.</td></tr>
+</table></div>
+<div class="term"><pre>$ head -n 4 data/genes.fasta
+&gt;geneA Homo sapiens
+ATGGCGTACGTTAGC
+&gt;geneB Mus musculus
+ATGCCGTTAGCATTA
+$ wc -l data/genes.fasta
+8 data/genes.fasta</pre></div>
+
+<h3>Wildcards</h3>
+<p>The <code>*</code> matches "anything". The shell expands it into the list of matching file names before running the command.</p>
+<div class="term"><pre>$ ls data/*.fasta      # every file ending in .fasta
+$ ls data/*            # everything in data
+$ cp data/*.fast* results/    # genes.fasta and reads.fastq</pre></div>
+<p><code>?</code> matches exactly one character: <code>sample_?.fq</code> matches <code>sample_1.fq</code> but not <code>sample_10.fq</code>.</p>
+
+<div class="ex"><p class="ex-tag">Exercise 3.1</p>
+<p>From <code>~/unix_tutorial</code>, make a copy of <code>data/genes.fasta</code> inside <code>results</code> called <code>genes_backup.fasta</code>. Then rename it to <code>genes_copy.fasta</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cp data/genes.fasta results/genes_backup.fasta
+$ mv results/genes_backup.fasta results/genes_copy.fasta
+$ ls results</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 3.2</p>
+<p>How many lines does <code>data/reads.fastq</code> have? How many <b>reads</b> does it contain? (Remember the FASTQ format from chapter 01.)</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ wc -l data/reads.fastq
+12 data/reads.fastq</pre></div>
+<p>Each read takes exactly 4 lines, so 12 / 4 = <b>3 reads</b>. This "divide by four" trick is used all the time to count reads in real data.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 3.3</p>
+<p>Print only the <b>last sequence</b> of <code>data/genes.fasta</code> (its header and its sequence line).</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ tail -n 2 data/genes.fasta
+&gt;geneD Homo sapiens
+ATGTTTGCGCATGCA</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 3.4</p>
+<p>Create a folder <code>tmp_play</code> with a file <code>hello.txt</code> inside. Then delete the whole folder with a single command. Why doesn't plain <code>rm tmp_play</code> work?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ mkdir tmp_play
+$ touch tmp_play/hello.txt
+$ rm tmp_play
+rm: cannot remove 'tmp_play': Is a directory
+$ rm -r tmp_play</pre></div>
+<p>Without <code>-r</code>, <code>rm</code> refuses to delete directories as a safety measure. <code>-r</code> means recursive: go inside and delete everything.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="flags">
+<p class="ch-label">Chapter 04</p>
+<h2>Commands, flags &amp; manuals</h2>
+<p class="lede">Every program you will ever run follows the same grammar. Learn it once and any new tool becomes readable.</p>
+
+<h3>Anatomy of a command</h3>
+<div class="term"><pre>$ ls -l -h data/
+# program: ls    flags: -l -h    argument: data/</pre></div>
+<ul>
+  <li><b>Program</b>: the first word, what to run (<code>ls</code>).</li>
+  <li><b>Flags</b> (also called <i>options</i>): start with a dash and change <i>how</i> the program behaves (<code>-l</code>, <code>-h</code>).</li>
+  <li><b>Arguments</b>: what the program should act on, usually files or folders (<code>data/</code>).</li>
+</ul>
+<p>Words are separated by spaces, which is why spaces in file names cause trouble.</p>
+
+<h3>Short and long flags</h3>
+<ul>
+  <li><b>Short flags</b> use one dash and one letter: <code>-h</code>. Several can be combined: <code>ls -l -a -h</code> is the same as <code>ls -lah</code>.</li>
+  <li><b>Long flags</b> use two dashes and a word: <code>--human-readable</code>. Easier to read in scripts, can't be combined.</li>
+  <li>Some flags take a <b>value</b>: <code>head -n 5</code>, <code>sort --key=2</code>. The value comes right after the flag.</li>
+</ul>
+<p>Bioinformatics tools look scary but follow the exact same grammar. For example, an alignment command:</p>
+<div class="term"><pre>$ bwa mem -t 8 reference.fa sample_R1.fq sample_R2.fq &gt; sample.sam
+# program: bwa, subcommand: mem, flag with value: -t 8 (use 8 threads)
+# arguments: the reference and the two read files
+# &gt; sample.sam  sends the output into a file (see next chapter)</pre></div>
+<p>Many big tools (<code>bwa</code>, <code>samtools</code>, <code>git</code>, <code>conda</code>) have <b>subcommands</b>: the second word picks what part of the tool you use, and each subcommand has its own flags.</p>
+
+<h3>How to read the manual</h3>
+<p>You are not expected to memorise flags. Everybody looks them up, all the time. There are three places to look:</p>
+<div class="term"><pre>$ man ls              # the full manual page (q to quit, / to search)
+$ ls --help           # short summary, printed straight to the screen
+$ samtools            # many bio tools print their usage when run with no arguments
+$ samtools sort       # ...and so do their subcommands</pre></div>
+<ul>
+  <li><code>man</code> works for classic Unix commands. Inside it, type <kbd>/</kbd> followed by a word to search, <kbd>n</kbd> for the next match, <kbd>q</kbd> to leave.</li>
+  <li><code>--help</code> or <code>-h</code> works for most programs, including bioinformatics tools and Python scripts.</li>
+  <li>Reading a usage line: things in <code>[brackets]</code> are optional; things in <code>&lt;angle brackets&gt;</code> are required; <code>...</code> means "one or more".</li>
+</ul>
+<div class="term"><pre>Usage: head [OPTION]... [FILE]...
+#   OPTION is optional and can be repeated; so is FILE.</pre></div>
+<div class="note"><b>Tip</b><p>Paste any confusing command into <a href="https://explainshell.com">explainshell.com</a> and it breaks it down flag by flag.</p></div>
+
+<h3>How programs work: input, output, errors</h3>
+<p>Most command-line programs follow the same logic: they read <b>input</b> (a file, or text coming from another program), do one thing to it, and write the result to <b>output</b>. By default the output is printed to your screen. Error messages go to a separate channel so they don't get mixed with the results. The three channels have names you will see in documentation:</p>
+<div class="tw"><table>
+<tr><th>Channel</th><th>Name</th><th>Default</th></tr>
+<tr><td>standard input</td><td><code>stdin</code></td><td>keyboard, or a file / another program</td></tr>
+<tr><td>standard output</td><td><code>stdout</code></td><td>the screen</td></tr>
+<tr><td>standard error</td><td><code>stderr</code></td><td>the screen (errors and progress messages)</td></tr>
+</table></div>
+<p>Unix is built on small programs that each do one job well. The power comes from chaining them, which is the subject of the next chapter.</p>
+
+<div class="ex"><p class="ex-tag">Exercise 4.1</p>
+<p>Use <code>man ls</code> to find the flag that sorts files by modification time, newest first. Then list <code>~/unix_tutorial/results</code> in long format sorted that way.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>Inside <code>man ls</code>, type <code>/modification</code> and press <kbd>Enter</kbd>. The flag is <code>-t</code>.</p>
+<div class="term"><pre>$ ls -lt ~/unix_tutorial/results
+$ ls -ltr ~/unix_tutorial/results   # -r reverses: oldest first, newest at the bottom</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 4.2</p>
+<p>Look at the help of <code>wc</code>. Which flag prints only the number of <b>characters</b>? Use it on <code>data/genes.fasta</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ wc --help
+$ wc -m data/genes.fasta</pre></div>
+<p><code>-m</code> counts characters, <code>-c</code> counts bytes. For plain DNA text they give the same number. (On a Mac, <code>wc --help</code> may not work; use <code>man wc</code>.)</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 4.3</p>
+<p>Identify the program, subcommand, flags (with their values) and arguments in: <code>samtools view -b -q 30 -o filtered.bam input.bam</code></p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<ul>
+<li>Program: <code>samtools</code>, subcommand: <code>view</code></li>
+<li>Flags: <code>-b</code> (output BAM, takes no value), <code>-q 30</code> (minimum mapping quality 30), <code>-o filtered.bam</code> (output file)</li>
+<li>Argument: <code>input.bam</code></li>
+</ul>
+<p>You can check all of this with <code>samtools view</code> (no arguments) once samtools is installed.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="pipes">
+<p class="ch-label">Chapter 05</p>
+<h2>Pipes, redirection &amp; grep</h2>
+<p class="lede">Save output to files and plug programs into each other. This is where the command line starts to feel powerful.</p>
+
+<h3>Redirection: send output to a file</h3>
+<div class="term"><pre>$ grep "&gt;" data/genes.fasta &gt; results/headers.txt    # &gt;  write (overwrites!)
+$ echo "one more line" &gt;&gt; results/headers.txt        # &gt;&gt; append to the end
+$ wc -l &lt; data/genes.fasta                          # &lt;  read input from a file
+$ some_tool input.fa &gt; out.txt 2&gt; errors.log         # 2&gt; sends stderr to its own file</pre></div>
+<div class="warn"><b>Watch out</b><p><code>&gt;</code> silently replaces the file if it already exists. Use <code>&gt;&gt;</code> when you want to add to it. Never redirect into the same file you are reading: <code>sort file.txt &gt; file.txt</code> leaves you with an empty file.</p></div>
+
+<h3>Pipes: <code>|</code></h3>
+<p>The pipe (the vertical bar, usually <kbd>Shift</kbd>+<kbd>\</kbd>) takes the output of the command on the left and feeds it as input to the command on the right. No intermediate files needed.</p>
+<div class="term"><pre>$ grep "&gt;" data/genes.fasta | wc -l      # how many headers = how many sequences
+4
+$ ls data | head -n 2
+genes.fasta
+reads.fastq</pre></div>
+<p>Build pipelines step by step: run the first command, look at the output, add the next <code>|</code>, look again.</p>
+
+<h3>Searching text: <code>grep</code></h3>
+<p><code>grep</code> prints every line that contains a pattern. It's probably the command you'll use most.</p>
+<div class="tw"><table>
+<tr><th>Flag</th><th>Effect</th></tr>
+<tr><td><code>-c</code></td><td>count matching lines instead of printing them</td></tr>
+<tr><td><code>-v</code></td><td>invert: lines that do <b>not</b> match</td></tr>
+<tr><td><code>-i</code></td><td>ignore upper/lower case</td></tr>
+<tr><td><code>-n</code></td><td>show line numbers</td></tr>
+<tr><td><code>-A 1</code></td><td>also print 1 line <b>after</b> each match (<code>-B</code> for before)</td></tr>
+<tr><td><code>-r</code></td><td>search in every file inside a folder</td></tr>
+</table></div>
+<div class="warn"><b>Always quote the &gt;</b><p><code>grep &gt; genes.fasta</code> without quotes is a disaster: the shell reads <code>&gt;</code> as redirection and <b>overwrites your FASTA with nothing</b>. Always write <code>grep "&gt;" genes.fasta</code>.</p></div>
+
+<h3>More small tools for tables</h3>
+<div class="tw"><table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>cut -f 2</code></td><td>keep column 2 of a tab-separated file (<code>-d ","</code> for CSV)</td></tr>
+<tr><td><code>sort</code></td><td>sort lines. <code>-n</code> numeric, <code>-r</code> reverse, <code>-k 4</code> by column 4</td></tr>
+<tr><td><code>uniq</code></td><td>collapse identical <b>adjacent</b> lines, so always <code>sort</code> first. <code>-c</code> counts them</td></tr>
+<tr><td><code>tail -n +2</code></td><td>everything from line 2 on: a quick way to drop a header</td></tr>
+<tr><td><code>awk</code>, <code>sed</code></td><td>small languages for editing text on the fly. Worth learning later</td></tr>
+</table></div>
+<div class="term"><pre>$ cut -f 2 data/samples.tsv | tail -n +2 | sort | uniq -c
+      2 human
+      2 mouse
+      1 zebrafish</pre></div>
+
+<div class="ex"><p class="ex-tag">Exercise 5.1</p>
+<p>Count how many sequences are in <code>data/genes.fasta</code> using a single <code>grep</code> command (no pipe).</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ grep -c "&gt;" data/genes.fasta
+4</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 5.2</p>
+<p>Print the headers <b>and sequences</b> of the human genes only.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ grep -A 1 "Homo sapiens" data/genes.fasta
+&gt;geneA Homo sapiens
+ATGGCGTACGTTAGC
+--
+&gt;geneD Homo sapiens
+ATGTTTGCGCATGCA</pre></div>
+<p>The <code>--</code> is grep's separator between groups. Add <code>--no-group-separator</code> to get a clean FASTA. This works here because each sequence is on one line; real FASTA files often wrap sequences over many lines, which is why tools like <code>seqkit</code> exist (chapter 08).</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 5.3</p>
+<p>Save only the <b>sequence</b> lines of <code>data/genes.fasta</code> (not the headers) into <code>results/sequences.txt</code>. Then check that the file has 4 lines.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ grep -v "&gt;" data/genes.fasta &gt; results/sequences.txt
+$ wc -l results/sequences.txt
+4 results/sequences.txt</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 5.4</p>
+<p>List the samples in <code>data/samples.tsv</code> from most to fewest reads, without the header line.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ tail -n +2 data/samples.tsv | sort -k4,4nr
+S3	human	brain	143000
+S1	human	liver	120000
+S5	mouse	brain	110000
+S2	mouse	liver	98000
+S4	zebrafish	fin	87000</pre></div>
+<p><code>-k4,4</code> sorts by column 4 only, <code>n</code> numerically, <code>r</code> in reverse. Without <code>n</code>, "98000" would come before "143000" because text sorting compares character by character.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 5.5</p>
+<p>How many different tissues are in the sample sheet? Answer with a pipeline that prints a single number.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cut -f 3 data/samples.tsv | tail -n +2 | sort | uniq | wc -l
+3</pre></div>
+<p>liver, brain and fin. <code>sort -u</code> does <code>sort | uniq</code> in one step.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="ch" id="scripts">
+<p class="ch-label">Chapter 06</p>
+<h2>Scripts with nano</h2>
+<p class="lede">A script is a text file full of commands. Writing your work into scripts is what makes it repeatable.</p>
+
+<h3>The nano editor</h3>
+<p><code>nano</code> is a simple text editor that runs inside the terminal. It's on almost every system, including every cluster, so you can always edit a file even without a graphical interface.</p>
+<div class="term"><pre>$ nano scripts/hello.sh     # opens the file (creates it if it doesn't exist)</pre></div>
+<p>The shortcuts are listed at the bottom of the nano screen. <code>^</code> means <kbd>Ctrl</kbd>.</p>
+<div class="tw"><table>
+<tr><th>Keys</th><th>Action</th></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd>, then <kbd>Enter</kbd></td><td>save ("write Out")</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>X</kbd></td><td>exit (asks to save if there are changes)</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>W</kbd></td><td>search ("Where is")</td></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> / <kbd>Ctrl</kbd>+<kbd>U</kbd></td><td>cut a whole line / paste it</td></tr>
+<tr><td><kbd>Alt</kbd>+<kbd>U</kbd></td><td>undo</td></tr>
+</table></div>
+
+<h3>Your first script</h3>
+<p>Write this in <code>scripts/hello.sh</code>:</p>
+<div class="term"><pre>#!/bin/bash
+# My first script: says hello and shows where it runs
+
+echo "Hello from $(hostname)"
+echo "Today is $(date)"
+echo "I am in $(pwd)"</pre></div>
+<ul>
+  <li>The first line, the <b>shebang</b> <code>#!/bin/bash</code>, says which program should run the file.</li>
+  <li><code>$(command)</code> runs a command and pastes its output in place.</li>
+</ul>
+<div class="term"><pre>$ bash scripts/hello.sh        # run it with bash
+$ chmod +x scripts/hello.sh    # or make it executable once...
+$ ./scripts/hello.sh           # ...and run it directly</pre></div>
+
+<h3>Variables and arguments</h3>
+<p>A <b>variable</b> stores a value. Set it with <code>name=value</code> (no spaces around <code>=</code>!) and read it with <code>$name</code>. Inside a script, <code>$1</code>, <code>$2</code>… are the arguments you gave when running it.</p>
+<div class="term"><pre>#!/bin/bash
+# Usage: bash scripts/describe.sh &lt;fasta file&gt;
+file=$1
+echo "Looking at: $file"
+echo "Lines: $(wc -l &lt; "$file")"</pre></div>
+<p>Put variables in double quotes (<code>"$file"</code>) so names with odd characters don't break things. Single quotes don't expand variables: <code>'$file'</code> prints literally <code>$file</code>.</p>
+
+<h3>Loops</h3>
+<p>A <code>for</code> loop repeats commands for every item in a list. This is how you process 50 samples with the same command.</p>
+<div class="term"><pre>$ for f in data/*.fasta data/*.fastq; do echo "$f"; wc -l &lt; "$f"; done</pre></div>
+<p>The same loop written nicely in a script:</p>
+<div class="term"><pre>#!/bin/bash
+for f in data/*
+do
+    echo "Processing $f"
+    # the real tool would go here, e.g. fastqc "$f"
+done</pre></div>
+
+<div class="note"><b>Good habits</b><p>Start every script with a comment saying what it does and how to run it. Add <code>set -euo pipefail</code> under the shebang: the script then stops at the first error instead of carrying on with broken results.</p></div>
+
+<div class="ex"><p class="ex-tag">Exercise 6.1</p>
+<p>With nano, write <code>scripts/count_seqs.sh</code>: it takes a FASTA file as argument and prints <code>&lt;file&gt; has N sequences</code>. Run it on <code>data/genes.fasta</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>#!/bin/bash
+# Count sequences in a FASTA file
+# Usage: bash count_seqs.sh &lt;file.fasta&gt;
+set -euo pipefail
+
+file=$1
+n=$(grep -c "&gt;" "$file")
+echo "$file has $n sequences"</pre></div>
+<div class="term"><pre>$ bash scripts/count_seqs.sh data/genes.fasta
+data/genes.fasta has 4 sequences</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 6.2</p>
+<p>Write a one-line loop that prints, for every file in <code>data/</code>, its name followed by its number of lines, like <code>data/genes.fasta: 8</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ for f in data/*; do echo "$f: $(wc -l &lt; "$f")"; done
+data/genes.fasta: 8
+data/reads.fastq: 12
+data/samples.tsv: 6</pre></div>
+<p>Using <code>wc -l &lt; file</code> instead of <code>wc -l file</code> prints only the number, without the file name.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 6.3</p>
+<p>What is wrong with this line? <code>name = geneA</code></p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>The spaces. The shell reads it as "run a program called <code>name</code> with arguments <code>=</code> and <code>geneA</code>" and answers <code>command not found</code>. Correct: <code>name=geneA</code>.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="ch" id="slurm">
+<p class="ch-label">Chapter 07</p>
+<h2>The cluster &amp; Slurm</h2>
+<p class="lede">How to ask a shared supercomputer to run your work, politely and efficiently.</p>
+
+<h3>What a cluster is</h3>
+<p>A cluster (or HPC, high-performance computing system) is many computers, called <b>nodes</b>, connected together and shared by many users.</p>
+<ul>
+  <li><b>Login node</b>: where you land after <code>ssh</code>. It is for light things only: editing scripts, moving files, submitting jobs.</li>
+  <li><b>Compute nodes</b>: where the real work runs. You don't log into them directly; you ask for them.</li>
+  <li><b>Scheduler</b>: the program that receives everyone's requests and decides who gets which node and when. Ours is <b>Slurm</b>.</li>
+</ul>
+<div class="warn"><b>Golden rule</b><p>Never run heavy analyses on the login node. It's shared by everyone, and admins will kill your process (and send you an email). Anything longer than a minute or two goes through Slurm.</p></div>
+
+<h3>A job script</h3>
+<p>A Slurm job is a normal bash script with some special comment lines at the top, starting with <code>#SBATCH</code>. They tell Slurm what resources you need. Save this as <code>scripts/count_job.sh</code>:</p>
+<div class="term"><pre>#!/bin/bash
+#SBATCH --job-name=count_seqs        # a name you'll recognise in the queue
+#SBATCH --output=logs/%x_%j.out      # %x = job name, %j = job ID
+#SBATCH --error=logs/%x_%j.err
+#SBATCH --time=00:10:00              # max run time, HH:MM:SS
+#SBATCH --cpus-per-task=1            # CPU cores
+#SBATCH --mem=1G                     # memory
+#SBATCH --partition=&lt;partition&gt;      # which queue; ask your admin
+
+set -euo pipefail
+echo "Job started on $(hostname) at $(date)"
+
+bash scripts/count_seqs.sh data/genes.fasta
+
+echo "Finished at $(date)"</pre></div>
+<div class="term"><pre>$ mkdir -p logs                      # Slurm will NOT create this folder for you
+$ sbatch scripts/count_job.sh
+Submitted batch job 4815162
+$ cat logs/count_seqs_4815162.out   # read the output once it finishes</pre></div>
+<p>The job starts in the folder you submitted from, so relative paths in the script are relative to there.</p>
+
+<h3>Watching and managing jobs</h3>
+<div class="tw"><table>
+<tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>sbatch job.sh</code></td><td>submit a job script</td></tr>
+<tr><td><code>squeue -u $USER</code></td><td>your jobs in the queue. State <code>PD</code> = pending (waiting), <code>R</code> = running</td></tr>
+<tr><td><code>scancel &lt;jobid&gt;</code></td><td>cancel a job. <code>scancel -u $USER</code> cancels all of yours</td></tr>
+<tr><td><code>sinfo</code></td><td>partitions and how busy the nodes are</td></tr>
+<tr><td><code>sacct -j &lt;jobid&gt;</code></td><td>information about finished jobs (did it fail? how long did it take?)</td></tr>
+<tr><td><code>seff &lt;jobid&gt;</code></td><td>how much of the requested CPU and memory the job really used (if installed)</td></tr>
+</table></div>
+<div class="term"><pre>$ sacct -j 4815162 --format=JobID,JobName,State,Elapsed,MaxRSS,ExitCode</pre></div>
+
+<h3>Asking for the right resources</h3>
+<ul>
+  <li>Ask for too little and the job is killed: <code>TIMEOUT</code> (ran out of time) or <code>OUT_OF_MEMORY</code>.</li>
+  <li>Ask for too much and you wait longer in the queue and block resources others could use.</li>
+  <li>Test on a small subset first, check with <code>seff</code> what it really used, then scale up with some margin.</li>
+  <li>If a tool can use several cores (a flag like <code>-t</code> or <code>--threads</code>), pass it the number you asked Slurm for: <code>--threads $SLURM_CPUS_PER_TASK</code>.</li>
+</ul>
+
+<h3>Interactive sessions</h3>
+<p>To test commands on a compute node, ask for an interactive shell. When it starts, your prompt shows a different host name: you are on a compute node now. Type <code>exit</code> to give it back.</p>
+<div class="term"><pre>$ srun --cpus-per-task=2 --mem=4G --time=01:00:00 --pty bash</pre></div>
+
+<h3>Software modules</h3>
+<p>Many clusters provide pre-installed software through <b>modules</b>:</p>
+<div class="term"><pre>$ module avail              # what exists (can be a long list)
+$ module avail samtools     # search for one tool
+$ module load samtools      # make it available in this session
+$ module list               # what you have loaded</pre></div>
+<p>If a tool isn't available as a module, you install it yourself with conda (next chapter).</p>
+
+<h3>Job arrays: one script, many samples</h3>
+<p>An array runs the same script many times, each with a different number in <code>$SLURM_ARRAY_TASK_ID</code>. Use that number to pick a sample from a list.</p>
+<div class="term"><pre>#!/bin/bash
+#SBATCH --job-name=per_sample
+#SBATCH --array=1-5                  # 5 tasks, IDs 1 to 5
+#SBATCH --output=logs/%x_%A_%a.out   # %A = array job ID, %a = task ID
+#SBATCH --time=00:10:00
+#SBATCH --mem=1G
+
+# samples_list.txt has one sample name per line
+sample=$(sed -n "${SLURM_ARRAY_TASK_ID}p" samples_list.txt)
+echo "Task $SLURM_ARRAY_TASK_ID is working on $sample"</pre></div>
+<p><code>sed -n "3p" file</code> prints line 3 of a file, so task 3 gets the third sample.</p>
+
+<div class="lab"><b>Our lab</b><p>Ask your supervisor for: which partitions we use · the account / project name for jobs · the maximum time per job · where to store large data.</p></div>
+
+<div class="ex"><p class="ex-tag">Exercise 7.1</p>
+<p>Change the <code>#SBATCH</code> lines of <code>count_job.sh</code> so the job gets 4 cores, 8 GB of memory and 2 hours.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>#SBATCH --time=02:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8G</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 7.2</p>
+<p>You submitted a job but realise the input file is wrong. How do you find its job ID and stop it?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ squeue -u $USER          # find the JOBID column
+$ scancel &lt;jobid&gt;</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 7.3</p>
+<p>Your job disappeared from <code>squeue</code> after a few seconds and there's no result. List three things to check.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<ul>
+<li>The <code>.err</code> and <code>.out</code> files in <code>logs/</code>: the error message is usually there.</li>
+<li>Does the <code>logs/</code> folder exist? If not, Slurm can't write the log and the job fails without leaving a trace.</li>
+<li><code>sacct -j &lt;jobid&gt;</code>: the State column says <code>FAILED</code>, <code>TIMEOUT</code>, <code>OUT_OF_MEMORY</code>… and ExitCode gives a hint.</li>
+<li>Bonus: paths. Relative paths are relative to where you ran <code>sbatch</code>.</li>
+</ul>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 7.4</p>
+<p>Create <code>samples_list.txt</code> with the sample IDs from <code>data/samples.tsv</code> (S1 to S5, one per line) using a pipeline. Then, without a cluster, simulate what array task 4 would pick.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cut -f 1 data/samples.tsv | tail -n +2 &gt; samples_list.txt
+$ SLURM_ARRAY_TASK_ID=4
+$ sed -n "${SLURM_ARRAY_TASK_ID}p" samples_list.txt
+S4</pre></div>
+</div></details></div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch" id="conda">
+<p class="ch-label">Chapter 08</p>
+<h2>Installing software: conda &amp; pip</h2>
+<p class="lede">You rarely have admin rights on a cluster, and every tool needs specific versions of other tools. Package managers solve both problems.</p>
+
+<h3>The problem</h3>
+<p>Tool A needs Python 3.8, tool B needs Python 3.12, and a third one needs an old version of a library that breaks both. Installing everything in one place ends in chaos (people call it "dependency hell"). The fix is <b>environments</b>: separate, isolated boxes, each with its own set of tools and versions. You switch between boxes as needed.</p>
+
+<h3>conda</h3>
+<p><b>conda</b> installs software of any language (C, Python, R, Java…) and manages environments. Bioinformatics tools are distributed through the <b>bioconda</b> channel, which relies on <b>conda-forge</b> for general libraries. A <b>channel</b> is simply a repository where conda looks for packages.</p>
+<p>We recommend installing <a href="https://github.com/conda-forge/miniforge">Miniforge</a>: a minimal conda that uses conda-forge by default and includes <code>mamba</code>, a faster drop-in replacement (<code>mamba install</code> = <code>conda install</code>).</p>
+<div class="term"><pre># one-time setup of channels (the order matters)
+$ conda config --add channels bioconda
+$ conda config --add channels conda-forge
+$ conda config --set channel_priority strict</pre></div>
+
+<h3>The everyday commands</h3>
+<div class="term"><pre>$ conda create -n qc fastqc seqkit        # new environment "qc" with two tools
+$ conda activate qc                       # step into it: the prompt shows (qc)
+(qc) $ seqkit stats data/genes.fasta      # the tools are now available
+(qc) $ conda install multiqc              # add more to the active environment
+(qc) $ conda list                         # what's installed here
+(qc) $ conda deactivate                   # step out
+$ conda env list                          # all your environments
+$ conda remove -n qc --all                # delete an environment</pre></div>
+<div class="note"><b>Tips</b><p>Make one environment per project or per group of related tools, not one giant environment for everything. Big environments become slow to solve and hard to update. Never install things into <code>base</code>.</p></div>
+
+<h3>Share and rebuild environments</h3>
+<div class="term"><pre>$ conda env export --from-history &gt; environment.yml   # save the recipe
+$ conda env create -f environment.yml                 # rebuild it elsewhere</pre></div>
+<p>Keep <code>environment.yml</code> in your project and in git. <code>--from-history</code> saves only what you asked for, which rebuilds more easily on another computer.</p>
+
+<h3>pip</h3>
+<p><b>pip</b> installs <b>Python</b> packages only, from <a href="https://pypi.org">PyPI</a>. Some Python tools exist only there. The rule is to run pip <b>inside</b> an activated conda environment, so the package lands in that box and not in the system.</p>
+<div class="term"><pre>$ conda activate myproject
+(myproject) $ python -m pip install &lt;package&gt;
+(myproject) $ python -m pip list</pre></div>
+<p><code>python -m pip</code> guarantees you use the pip that belongs to the Python you're running.</p>
+
+<h3>conda or pip?</h3>
+<div class="tw"><table>
+<tr><th>Situation</th><th>Use</th></tr>
+<tr><td>A bioinformatics tool (samtools, iqtree, mafft…)</td><td>conda (bioconda)</td></tr>
+<tr><td>A Python library that exists on conda-forge</td><td>conda, to keep one manager in charge</td></tr>
+<tr><td>A Python package only on PyPI or GitHub</td><td>pip, inside a conda environment</td></tr>
+<tr><td>Tool already provided by the cluster</td><td><code>module load</code></td></tr>
+</table></div>
+<ul>
+  <li>Install with conda first, pip last. If you conda-install after pip-installing, conda may overwrite things pip put there.</li>
+  <li>Never use <code>sudo pip</code>. On a cluster you don't have <code>sudo</code> anyway.</li>
+  <li>If pip complains about an <code>externally-managed-environment</code>, you are not inside an environment: activate one.</li>
+  <li>Lost? <code>which python</code> and <code>which samtools</code> tell you which copy you are actually using.</li>
+</ul>
+
+<div class="ex"><p class="ex-tag">Exercise 8.1</p>
+<p>Create an environment called <code>seqtools</code> containing <code>seqkit</code>, activate it, and use <code>seqkit stats</code> on <code>data/genes.fasta</code>. What is the average sequence length?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ conda create -n seqtools seqkit
+$ conda activate seqtools
+(seqtools) $ seqkit stats data/genes.fasta
+file              format  type  num_seqs  sum_len  min_len  avg_len  max_len
+data/genes.fasta  FASTA   DNA          4       60       15       15       15</pre></div>
+<p>Four sequences of 15 bases each, so the average is 15.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 8.2</p>
+<p>Run <code>which python</code> outside any environment, then inside <code>seqtools</code>. Why are the answers different?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p>Activating an environment puts its <code>bin/</code> folder first in your <code>PATH</code>, the list of places the shell searches for programs. So the same command name points to a different copy. Inside the environment you'll see something like <code>~/miniforge3/envs/seqtools/bin/python</code>. (If <code>seqtools</code> has no Python of its own, conda may fall back to another one: this is a good reason to list <code>python</code> explicitly when creating environments that need it.)</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 8.3</p>
+<p>Inside <code>seqtools</code>, install Biopython with pip and check that it imports. Then export the environment to <code>environment.yml</code>.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>(seqtools) $ conda install python        # make sure the env has its own Python
+(seqtools) $ python -m pip install biopython
+(seqtools) $ python -c "import Bio; print(Bio.__version__)"
+(seqtools) $ conda env export --from-history &gt; environment.yml</pre></div>
+<p>Note: <code>--from-history</code> does not record pip packages. Open the file with nano and add them by hand under a <code>- pip:</code> section, or use <code>conda env export</code> without the flag, which lists everything.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 09 ============ -->
+<section class="ch" id="git">
+<p class="ch-label">Chapter 09</p>
+<h2>Git &amp; GitHub</h2>
+<p class="lede">Version control: a complete history of your scripts, a backup, and a way to share code.</p>
+
+<h3>What they are</h3>
+<ul>
+  <li><b>Git</b> is a program that records snapshots of a folder over time. Each snapshot is a <b>commit</b>, with a message saying what changed. You can compare versions and go back to any of them. It runs on your computer.</li>
+  <li><b>GitHub</b> is a website that hosts git folders (<b>repositories</b>, or "repos") online. It is a backup, a place to share code with collaborators and reviewers, and often where you'll download other people's tools. GitLab and Bitbucket do the same job.</li>
+</ul>
+<p>Git replaces <code>analysis_final.sh</code>, <code>analysis_final2.sh</code>, <code>analysis_final_REALLY.sh</code>.</p>
+
+<h3>The three places your changes live</h3>
+<div class="flow">
+  <div class="box"><b>Working folder</b>files as you edit them</div>
+  <div class="arr">git add<br>→</div>
+  <div class="box"><b>Staging area</b>changes chosen for the next snapshot</div>
+  <div class="arr">git commit<br>→</div>
+  <div class="box"><b>Local history</b>snapshots on your computer</div>
+  <div class="arr">git push<br>→</div>
+  <div class="box"><b>GitHub</b>the copy online</div>
+</div>
+<p>The staging area lets you decide what goes in a commit: you might edit five files but only commit the two that belong together.</p>
+
+<h3>One-time setup</h3>
+<div class="term"><pre>$ git config --global user.name "Your Name"
+$ git config --global user.email "you@university.edu"   # same email as on GitHub
+$ git config --global init.defaultBranch main
+$ git config --global core.editor nano                   # use nano for commit messages</pre></div>
+
+<h3>The daily cycle</h3>
+<div class="term"><pre>$ cd ~/unix_tutorial/scripts
+$ git init                       # turn this folder into a repository (once)
+$ git status                     # what changed? run this constantly
+$ git add count_seqs.sh          # stage a file (git add . stages everything)
+$ git commit -m "Add script to count FASTA sequences"
+$ git log --oneline              # the history, one line per commit
+$ git diff                       # what changed since the last commit, line by line</pre></div>
+<p><code>git status</code> is your best friend: it tells you what is modified, what is staged, and often suggests the next command.</p>
+
+<h3>Connecting to GitHub</h3>
+<p>GitHub no longer accepts your password from the terminal. The easiest way is an <b>SSH key</b>: a pair of files, one private (stays on your computer) and one public (you give to GitHub).</p>
+<div class="term"><pre>$ ssh-keygen -t ed25519 -C "you@university.edu"   # press Enter to accept the defaults
+$ cat ~/.ssh/id_ed25519.pub                       # copy this whole line
+# GitHub → Settings → SSH and GPG keys → New SSH key → paste
+$ ssh -T git@github.com                           # test: "Hi username! You've successfully authenticated"</pre></div>
+<p>Do this once per computer (your laptop and the cluster each need their own key).</p>
+<p>Then, to send a local repository to GitHub, create an <b>empty</b> repository on github.com (no README), and:</p>
+<div class="term"><pre>$ git remote add origin git@github.com:&lt;username&gt;/&lt;repo&gt;.git
+$ git push -u origin main        # first push; afterwards just: git push
+$ git pull                       # bring down changes made elsewhere</pre></div>
+<p>To start from a repository that already exists online:</p>
+<div class="term"><pre>$ git clone git@github.com:&lt;username&gt;/&lt;repo&gt;.git</pre></div>
+
+<h3>What not to put in git: <code>.gitignore</code></h3>
+<p>Git is for code and small text files. Not for sequencing data, BAMs or big results: GitHub refuses files over 100 MB, and a repo full of data becomes unusable. List what git should ignore in a file called <code>.gitignore</code>:</p>
+<div class="term"><pre># .gitignore
+data/
+results/
+logs/
+*.fastq.gz
+*.bam
+.DS_Store</pre></div>
+<div class="warn"><b>Watch out</b><p>Never commit passwords, tokens or unpublished data to a public repository. Once pushed, assume it's public forever, even if you delete it later.</p></div>
+
+<h3>Undoing things</h3>
+<div class="tw"><table>
+<tr><th>Situation</th><th>Command</th></tr>
+<tr><td>I messed up a file and want the last committed version back</td><td><code>git restore file.sh</code></td></tr>
+<tr><td>I staged something by mistake</td><td><code>git restore --staged file.sh</code></td></tr>
+<tr><td>Typo in the last commit message (not pushed yet)</td><td><code>git commit --amend</code></td></tr>
+<tr><td>A pushed commit broke something</td><td><code>git revert &lt;commit&gt;</code> (makes a new commit that undoes it)</td></tr>
+<tr><td>What did this file look like 3 commits ago?</td><td><code>git show HEAD~3:file.sh</code></td></tr>
+</table></div>
+<p>Commit IDs are the codes shown by <code>git log --oneline</code> (like <code>a1b2c3d</code>). <code>HEAD</code> means "the latest commit".</p>
+
+<h3>Branches, briefly</h3>
+<p>A <b>branch</b> is a parallel line of history. Use one to try an idea without touching your working version; merge it back if it works.</p>
+<div class="term"><pre>$ git switch -c new-filter     # create a branch and move to it
+# ...edit, add, commit as usual...
+$ git switch main              # back to the main line
+$ git merge new-filter         # bring the changes in</pre></div>
+
+<div class="note"><b>Good habits</b><p>Commit small and often, each commit doing one thing. Write messages that say <i>why</i>: "Filter reads with MAPQ &lt; 30 to remove multimappers" beats "update". Push at the end of every day: it's your backup.</p></div>
+
+<div class="ex"><p class="ex-tag">Exercise 9.1</p>
+<p>Turn <code>~/unix_tutorial/scripts</code> into a git repository and make a first commit containing <code>count_seqs.sh</code>. Check the history.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cd ~/unix_tutorial/scripts
+$ git init
+$ git add count_seqs.sh
+$ git commit -m "Add FASTA sequence counter"
+$ git log --oneline</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 9.2</p>
+<p>Edit <code>count_seqs.sh</code> with nano (for example, change the message it prints). Before committing, show exactly what changed. Then commit.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ nano count_seqs.sh
+$ git status               # shows it as "modified"
+$ git diff                 # lines starting with - were removed, + were added
+$ git add count_seqs.sh
+$ git commit -m "Make output message clearer"</pre></div>
+<p>Shortcut: <code>git commit -am "message"</code> stages and commits every file git already knows about.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 9.3</p>
+<p>Open <code>count_seqs.sh</code>, delete everything, save. Oops. Get the file back.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ git restore count_seqs.sh
+$ cat count_seqs.sh        # it's back, as it was at the last commit</pre></div>
+<p>This only recovers what was committed. Anything you never committed is gone: one more reason to commit often.</p>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 9.4</p>
+<p>Make the whole <code>~/unix_tutorial</code> folder a repository, but make sure <code>data/</code>, <code>results/</code> and <code>logs/</code> are never tracked. How do you check it worked?</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre>$ cd ~/unix_tutorial
+$ rm -rf scripts/.git            # remove the repo from 9.1 so there is only one
+$ git init
+$ printf "data/\nresults/\nlogs/\n" &gt; .gitignore
+$ git status                     # data/, results/, logs/ must NOT appear
+$ git add .
+$ git commit -m "Start tutorial project"</pre></div>
+<p>A repository inside another repository causes confusion, which is why we remove the first one. (This is one of the few times <code>rm -rf</code> is appropriate: check the path twice!)</p>
+</div></details></div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="ch" id="vscode">
+<p class="ch-label">Chapter 10</p>
+<h2>VS Code</h2>
+<p class="lede">A free code editor that makes writing scripts and documentation more comfortable. A companion to the terminal, not a replacement.</p>
+
+<h3>What it's good for</h3>
+<ul>
+  <li><b>Writing and reading code</b> with colours (syntax highlighting), line numbers, and warnings about mistakes.</li>
+  <li><b>Documenting</b> your work in Markdown files, with a live preview.</li>
+  <li><b>Editing files on the cluster</b> as if they were on your laptop, through the Remote-SSH extension.</li>
+  <li><b>Seeing the whole project</b>: a file tree on the left, search across all files, and a visual view of git changes.</li>
+</ul>
+
+<h3>Shortcuts worth knowing</h3>
+<p>On Windows and Linux use <kbd>Ctrl</kbd> where the Mac uses <kbd>Cmd</kbd>.</p>
+<div class="tw"><table>
+<tr><th>Shortcut</th><th>What it does</th></tr>
+<tr><td><kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></td><td>Command Palette: search any action by name. If you remember only one shortcut, remember this</td></tr>
+<tr><td><kbd>Cmd</kbd>+<kbd>P</kbd></td><td>open a file by typing part of its name</td></tr>
+<tr><td><kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>search in every file of the project</td></tr>
+<tr><td><kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></td><td>Markdown preview (<kbd>Cmd</kbd>+<kbd>K</kbd> then <kbd>V</kbd> opens it side by side)</td></tr>
+<tr><td><kbd>Alt</kbd>+click</td><td>several cursors: edit many lines at once</td></tr>
+<tr><td><kbd>Cmd</kbd>+<kbd>/</kbd></td><td>comment / uncomment the selected lines</td></tr>
+<tr><td><kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></td><td>move the current line up or down</td></tr>
+</table></div>
+
+<h3>Useful extensions</h3>
+<p>Install them from the Extensions panel (the four-squares icon on the left).</p>
+<div class="tw"><table>
+<tr><th>Extension</th><th>Why</th></tr>
+<tr><td>Remote - SSH</td><td>open folders on the cluster and edit them directly</td></tr>
+<tr><td>Markdown All in One</td><td>shortcuts, table of contents and list helpers for .md files</td></tr>
+<tr><td>ShellCheck</td><td>catches common bugs in bash scripts as you type</td></tr>
+<tr><td>Rainbow CSV</td><td>colours each column of CSV/TSV files so tables are readable</td></tr>
+<tr><td>Python, Jupyter, R</td><td>language support and notebooks</td></tr>
+<tr><td>Snakemake / Nextflow</td><td>syntax support if you later write pipelines</td></tr>
+</table></div>
+
+<h3>Markdown in five minutes</h3>
+<p>Markdown (<code>.md</code>) is plain text with a few symbols for formatting. GitHub displays <code>README.md</code> files automatically on the front page of every repository, so it's the standard way to document a project.</p>
+<div class="term"><pre># Project title
+## A section
+Normal text with **bold**, *italic* and `inline code`.
+
+- a bullet point
+- another one
+
+1. numbered step
+2. next step
+
+```bash
+bash scripts/count_seqs.sh data/genes.fasta
+```
+
+[a link](https://github.com)
+
+| sample | reads  |
+|--------|--------|
+| S1     | 120000 |</pre></div>
+
+<h3>A word on the built-in terminal</h3>
+<p>VS Code has a terminal panel inside it. In our lab we prefer to keep a <b>separate terminal window</b> for running commands and use VS Code for reading and writing files. The reasons:</p>
+<ul>
+  <li>On the cluster, and in many situations later, there is no graphical interface. If you learn with a real terminal, you're never stuck.</li>
+  <li>Remote-SSH runs a small server on the cluster's login node. Some clusters restrict it; if it's unavailable, you still need <code>ssh</code> and <code>nano</code>.</li>
+  <li>Buttons and panels can hide what's happening. Knowing the actual commands (<code>git add</code>, <code>git commit</code>) means you understand what the buttons do.</li>
+</ul>
+<p>The same applies to the git panel: handy for looking at diffs, but learn the commands first.</p>
+
+<div class="ex"><p class="ex-tag">Exercise 10.1</p>
+<p>Open <code>~/unix_tutorial</code> in VS Code (<i>File → Open Folder</i>). Create a <code>README.md</code> that has a title, one sentence about the project, a bullet list of the three folders and a code block showing how to run <code>count_seqs.sh</code>. Preview it, then commit it from the terminal.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<div class="term"><pre># Unix tutorial
+
+Practice project from my first week in the lab.
+
+- `data/`: small example FASTA, FASTQ and sample sheet
+- `scripts/`: my scripts
+- `results/`: outputs (not tracked by git)
+
+## Usage
+
+```bash
+bash scripts/count_seqs.sh data/genes.fasta
+```</pre></div>
+<div class="term"><pre>$ git add README.md
+$ git commit -m "Add README"</pre></div>
+</div></details></div>
+
+<div class="ex"><p class="ex-tag">Exercise 10.2</p>
+<p>With the Command Palette, find how to change VS Code's colour theme, without using any menu.</p>
+<details><summary><span class="show">Show answer</span><span class="hide">Hide answer</span></summary><div class="ans">
+<p><kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>, type "theme", choose <i>Preferences: Color Theme</i>. The palette works this way for everything, so you rarely need to know where a menu is.</p>
+</div></details></div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="ch" id="cheat">
+<p class="ch-label">Chapter 11</p>
+<h2>Cheat sheet &amp; next steps</h2>
+
+<div class="tw"><table>
+<tr><th>Task</th><th>Command</th></tr>
+<tr><td>Where am I / what's here / go there</td><td><code>pwd</code> · <code>ls -lh</code> · <code>cd path</code></td></tr>
+<tr><td>Up one level / home / previous folder</td><td><code>cd ..</code> · <code>cd</code> · <code>cd -</code></td></tr>
+<tr><td>Make folder / empty file</td><td><code>mkdir -p a/b</code> · <code>touch f</code></td></tr>
+<tr><td>Copy / move or rename / delete</td><td><code>cp a b</code> · <code>mv a b</code> · <code>rm f</code> (<code>-r</code> for folders)</td></tr>
+<tr><td>Look at a file</td><td><code>less</code> · <code>head -n 5</code> · <code>tail -n 5</code> · <code>cat</code></td></tr>
+<tr><td>Count lines</td><td><code>wc -l f</code></td></tr>
+<tr><td>Search</td><td><code>grep "pattern" f</code> (<code>-c -v -i -n</code>)</td></tr>
+<tr><td>Columns, sort, count unique</td><td><code>cut -f 2</code> · <code>sort -k2,2n</code> · <code>sort | uniq -c</code></td></tr>
+<tr><td>Save output / append / chain</td><td><code>&gt;</code> · <code>&gt;&gt;</code> · <code>|</code></td></tr>
+<tr><td>Help</td><td><code>man cmd</code> · <code>cmd --help</code></td></tr>
+<tr><td>Edit a file</td><td><code>nano f</code> (<kbd>Ctrl</kbd>+<kbd>O</kbd> save, <kbd>Ctrl</kbd>+<kbd>X</kbd> exit)</td></tr>
+<tr><td>Run a script</td><td><code>bash script.sh</code></td></tr>
+<tr><td>Slurm</td><td><code>sbatch</code> · <code>squeue -u $USER</code> · <code>scancel</code> · <code>sacct</code> · <code>srun --pty bash</code></td></tr>
+<tr><td>conda</td><td><code>conda create -n x tool</code> · <code>conda activate x</code> · <code>conda env list</code></td></tr>
+<tr><td>git</td><td><code>git status</code> · <code>add</code> · <code>commit -m</code> · <code>push</code> · <code>pull</code> · <code>log --oneline</code></td></tr>
+<tr><td>Stop / clear / search history</td><td><kbd>Ctrl</kbd>+<kbd>C</kbd> · <kbd>Ctrl</kbd>+<kbd>L</kbd> · <kbd>Ctrl</kbd>+<kbd>R</kbd></td></tr>
+</table></div>
+
+<h3>When you are stuck</h3>
+<ol>
+  <li>Read the error message, slowly. It usually says exactly what's wrong (<code>No such file or directory</code> means the path is wrong).</li>
+  <li>Check where you are (<code>pwd</code>) and what's there (<code>ls</code>).</li>
+  <li>Check the manual (<code>--help</code>, <code>man</code>).</li>
+  <li>Search the exact error message online.</li>
+  <li>Ask. Bring the command you ran and the full error message.</li>
+</ol>
+
+<h3>Where to go next</h3>
+<ul>
+  <li><a href="https://swcarpentry.github.io/shell-novice/">Software Carpentry: The Unix Shell</a>, a longer free course with more exercises</li>
+  <li><a href="https://slurm.schedmd.com/documentation.html">Slurm documentation</a> and your cluster's own user guide</li>
+  <li><a href="https://bioconda.github.io/">Bioconda</a>, to search for tools and learn about channels</li>
+  <li><a href="https://git-scm.com/book/en/v2">Pro Git</a>, the free book about git (chapters 1–3 are enough to start)</li>
+  <li><a href="https://code.visualstudio.com/docs">VS Code documentation</a></li>
+  <li>Later: <code>awk</code> and <code>sed</code> for text processing, and workflow managers like Snakemake or Nextflow for long pipelines</li>
+</ul>
+
+<footer>
+<p>Written as a lab onboarding tutorial. Feel free to reuse and adapt it for your own students.</p>
+</footer>
+</section>
+</main>
+</div>
+
+<script>
+(function(){
+  // highlight terminal lines and add copy buttons
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  document.querySelectorAll(".term").forEach(function(t){
+    var pre=t.querySelector("pre"); if(!pre) return;
+    var raw=pre.textContent;
+    var lines=raw.split("\n");
+    var hasPrompt=lines.some(function(l){return /^(\([\w-]+\) )?\$ /.test(l);});
+    pre.innerHTML=lines.map(function(l){
+      var m=l.match(/^((?:\([\w-]+\) )?\$ )(.*)$/);
+      if(m){
+        var body=m[2], cm=body.match(/^(.*?)(\s+#\s.*)$/);
+        var html=cm?esc(cm[1])+'<span class="c">'+esc(cm[2])+'</span>':esc(body);
+        return '<span class="p">'+esc(m[1])+'</span>'+html;
+      }
+      if(/^\s*#(?!!)/.test(l) && !/^#SBATCH/.test(l)) return '<span class="c">'+esc(l)+'</span>';
+      var cm2=l.match(/^(.*?)(\s+#\s.*)$/);
+      if(!hasPrompt && cm2) return esc(cm2[1])+'<span class="c">'+esc(cm2[2])+'</span>';
+      return hasPrompt?'<span class="o">'+esc(l)+'</span>':esc(l);
+    }).join("\n");
+    var toCopy=hasPrompt
+      ? lines.filter(function(l){return /^(\([\w-]+\) )?\$ /.test(l);}).map(function(l){return l.replace(/^(\([\w-]+\) )?\$ /,"");}).join("\n")
+      : raw;
+    var bar=document.createElement("div"); bar.className="bar";
+    bar.innerHTML='<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+    var b=document.createElement("button"); b.className="copy"; b.type="button"; b.textContent="copy";
+    b.addEventListener("click",function(){
+      function done(){b.textContent="copied";setTimeout(function(){b.textContent="copy";},1400);}
+      function fallback(){var r=document.createRange();r.selectNodeContents(pre);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="press Ctrl/Cmd+C";setTimeout(function(){b.textContent="copy";},2200);}
+      try{navigator.clipboard.writeText(toCopy).then(done,fallback);}catch(e){fallback();}
+    });
+    bar.appendChild(b); t.insertBefore(bar,pre);
+  });
+
+  // show / hide all answers
+  var all=document.getElementById("toggleAll"), open=false;
+  all.addEventListener("click",function(){
+    open=!open;
+    document.querySelectorAll(".ex details").forEach(function(d){d.open=open;});
+    all.textContent=open?"Hide all answers":"Show all answers";
+  });
+
+  // mobile chapter menu
+  var toc=document.getElementById("toc"), tg=document.getElementById("tocToggle");
+  tg.addEventListener("click",function(){var o=toc.classList.toggle("open");tg.setAttribute("aria-expanded",o);});
+  toc.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){toc.classList.remove("open");tg.setAttribute("aria-expanded","false");});});
+
+  // highlight current chapter
+  var links={}; toc.querySelectorAll("a").forEach(function(a){links[a.getAttribute("href").slice(1)]=a;});
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){
+        Object.values(links).forEach(function(a){a.classList.remove("active");});
+        var a=links[e.target.id]; if(a) a.classList.add("active");
+      }});
+    },{rootMargin:"-20% 0px -70% 0px"});
+    document.querySelectorAll("section.ch").forEach(function(s){io.observe(s);});
+  }
+})();
+</script>
+
+</body>
+</html>
